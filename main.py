@@ -63,4 +63,4 @@ async def help(context):
     color=0xFF5733)
     await context.send(embed=embed)
 
-bot.run('OTIyMTI5MDU3NzUwMDY5MzA4.Yb89mw.jH84STUlOTGZLy6pbuwsMFxRLiE')
+bot.run('Token')
