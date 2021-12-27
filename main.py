@@ -66,4 +66,4 @@ async def help(context):
 
 
 
-bot.run('OTIyMTI5MDU3NzUwMDY5MzA4.Yb89mw.gPj6ItDOKM5we4mqCJiwukU5Hxg')
+bot.run('Token')
