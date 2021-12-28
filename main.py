@@ -87,6 +87,31 @@ async def gh(ctx):
     await ctx.send("_ _", components=[Button(label="Github", style=ButtonStyle.URL, url="https://github.com/LoyalWolf1404/DiscordPython")])
 
 
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.MissingRequiredArgument):
+        await ctx.send('Du hast keinen User angegeben.')
+    if isinstance(error, commands.MissingPermissions):
+        await ctx.send("Du hast keine Berechtigung dafür.")
+
+@bot.command()
+@commands.has_permissions(ban_members = True)
+async def ban(ctx, member : discord.Member, *, reason = None):
+    await member.ban(reason = reason)
+
+@bot.command()
+@commands.has_permissions(administrator = True)
+async def unban(ctx, *, member):
+    banned_users = await ctx.guild.bans()
+    member_name, member_discriminator = member.split("#")
+
+    for ban_entry in banned_users:
+        user = ban_entry.user
+
+        if (user.name, user.discriminator) == (member_name, member_discriminator):
+            await ctx.guild.unban(user)
+            await ctx.send(f'Entbannt: {user.mention}')
+            return
 
 
 @bot.command()
@@ -95,14 +120,19 @@ async def help(context):
                           description="!help - Zeigt das hier an\n\
                 !test - Einfach nur zum testen\n\
                 !kill - Bringt jemanden um jajaja.\n\
-                !say - Sagt ein word für dich, weil du zu dumm bist das wort auszusprechen\n\
+                !say - Sagt ein word für dich,\n\
+                weil du zu dumm bist das wort\n\
+                auszusprechen\n\
                 !argumenttest - Mach einfach\n\
                 !caps - macht alles in caps\n\
                 !rechne - rechnet dir alles\n\
                 !userinfo - zeigt dir die Userinfo an\n\
-                !gh - Github Button zu meinem Profil",
+                !gh - Github Button zu meinem Profil\n\
+                !ban - bannt einen User\n\
+                !unban - entbannt einen User\n\
+                !mute - Kommt noch...",
                           color=discord.Colour.purple())
     await context.send(embed=embed)
 
-
+    
 bot.run('Token')
