@@ -197,13 +197,18 @@ async def help(context):
                 !caps - macht alles in caps\n\
                 !rechne - rechnet dir alles\n\
                 !userinfo - zeigt dir die Userinfo an\n\
-                !gh - Github Button zu meinem Profil\n\
                 !ban - bannt einen User\n\
                 !unban - entbannt einen User\n\
-                !mute - Mutet einen User.",
-                          color=discord.Colour.purple())
-    await context.send(embed=embed)
-
+                !mute - Mutet einen User.\n\
+                !ticketcreate - Erstellt ein Ticket\n\
+                !ticketdelete (Channelname) - Löscht das Ticket",
+                          color=discord.Colour.purple()
+                          )
+    embed.set_footer(text='LoyalWolfLP#6733')
+    await context.send(embed=embed, components=[
+        Button(label="Github", style=ButtonStyle.URL, url="https://github.com/LoyalWolf1404/DiscordPython"),
+        Button(label="Füge den Bot hinzu", style=ButtonStyle.URL,
+               url='https://discord.com/oauth2/authorize?client_id=922129057750069308&scope=bot&permissions=8')])
 
 bot.run('Token')
 
