@@ -1,14 +1,18 @@
 from datetime import datetime
-from discord.enums import ButtonStyle
-from discord_components import Button, Select, SelectOption, ComponentsBot, interaction, ButtonStyle
+
 import discord
-from discord.ext import commands
 import discord.ext
 import pytz
+from discord.enums import ButtonStyle
+from discord.ext import commands
+from discord.ext.commands import has_permissions, CheckFailure
+from discord_components import Button, ButtonStyle
 
+intents = discord.Intents.default()
 
-client = discord.Client()
-bot = commands.Bot(command_prefix='!', help_command=None)
+bot = discord.Client()
+channel = discord.utils.get(bot.get_all_channels())
+bot = commands.Bot(command_prefix='!', help_command=None, intents=intents)
 
 
 @bot.event
@@ -84,23 +88,26 @@ async def userinfo(ctx, member: discord.Member):
 
 @bot.command()
 async def gh(ctx):
-    await ctx.send("_ _", components=[Button(label="Github", style=ButtonStyle.URL, url="https://github.com/LoyalWolf1404/DiscordPython")])
+    await ctx.send("_ _", components=[
+        Button(label="Github", style=ButtonStyle.URL, url="https://github.com/LoyalWolf1404/DiscordPython")])
 
 
-@bot.event
-async def on_command_error(ctx, error):
+@bot.command()
+@commands.has_permissions(ban_members=True)
+async def ban(ctx, member: discord.Member, *, reason=None):
+    await member.ban(reason=reason)
+
+
+@ban.error
+async def ban_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send('Du hast keinen User angegeben.')
     if isinstance(error, commands.MissingPermissions):
         await ctx.send("Du hast keine Berechtigung dafür.")
 
-@bot.command()
-@commands.has_permissions(ban_members = True)
-async def ban(ctx, member : discord.Member, *, reason = None):
-    await member.ban(reason = reason)
 
 @bot.command()
-@commands.has_permissions(administrator = True)
+@commands.has_permissions(administrator=True)
 async def unban(ctx, *, member):
     banned_users = await ctx.guild.bans()
     member_name, member_discriminator = member.split("#")
@@ -112,6 +119,69 @@ async def unban(ctx, *, member):
             await ctx.guild.unban(user)
             await ctx.send(f'Entbannt: {user.mention}')
             return
+
+
+@bot.command(description="Muted einen User.")
+@commands.has_permissions(manage_messages=True)
+async def mute(ctx, member: discord.Member, *, reason=None):
+    guild = ctx.guild
+    mutedRole = discord.utils.get(guild.roles, name="Muted")
+
+    if not mutedRole:
+        mutedRole = await guild.create_role(name="Muted")
+
+        for channel in guild.channels:
+            await channel.set_permissions(mutedRole, speak=False, send_messages=False, read_message_history=True,
+                                          read_messages=False)
+    embed = discord.Embed(title="Mute", description=f"{member.mention} wurde gemutet ",
+                          colour=discord.Colour.light_gray())
+    embed.add_field(name="Grund:", value=reason, inline=False)
+    await ctx.send(embed=embed)
+    await member.add_roles(mutedRole, reason=reason)
+    await member.send(f" Du wurdest in {guild.name} gemutet mit dem Grund: {reason}")
+
+
+@bot.command()
+async def tutel(ctx):
+    await ctx.send('Tutel :>')
+
+
+@bot.command()
+async def ticketcreate(ctx):
+    guild = ctx.guild
+    embed = discord.Embed(
+        title='Ticket system',
+        description='Reagiere mit 📩 um ein Ticket zu machen.',
+        color=0
+    )
+
+    embed.set_footer(text="LoyalWolfLP#6733")
+
+    msg = await ctx.send(embed=embed)
+    await msg.add_reaction('📩')
+
+    def check(reaction, user):
+        return str(reaction) == '📩' and ctx.author == user
+
+    await bot.wait_for("reaction_add", check=check)
+    name = 'Tickettest'
+    category = discord.utils.get(ctx.guild.categories, name=name)
+
+    await ctx.guild.create_text_channel(name=f'Ticket von {ctx.author}', category=category)
+
+
+@bot.command()
+@has_permissions(administrator=True, manage_channels=True)
+async def ticketdelete(ctx, channel_name):
+    # check if the channel exists
+    existing_channel = discord.utils.get(bot.get_all_channels(), name=channel_name)
+
+    # if the channel exists
+    if existing_channel is not None:
+        await existing_channel.delete()
+    # if the channel does not exist, inform the user
+    else:
+        await ctx.send(f'No channel named, "{channel_name}", was found')
 
 
 @bot.command()
@@ -130,9 +200,10 @@ async def help(context):
                 !gh - Github Button zu meinem Profil\n\
                 !ban - bannt einen User\n\
                 !unban - entbannt einen User\n\
-                !mute - Kommt noch...",
+                !mute - Mutet einen User.",
                           color=discord.Colour.purple())
     await context.send(embed=embed)
 
-    
+
 bot.run('Token')
+
